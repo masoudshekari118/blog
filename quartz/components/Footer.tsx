@@ -10,11 +10,11 @@ interface Options {
 export default ((opts?: Options) => {
   const Footer: QuartzComponent = ({ displayClass, cfg }: QuartzComponentProps) => {
     const year = new Date().getFullYear()
-    const links = opts?.links ?? []
+    const links = opts?.links ?? {}
     return (
       <footer class={`${displayClass ?? ""}`}>
         <p>
-          {i18n(cfg.locale).components.footer.createdWith}{" "}
+          کلیه حقوق سایت متعلق به مسعود شکری است. {" "}
           <a href="https://quartz.jzhao.xyz/">Quartz v{version}</a> © {year}
         </p>
         <ul>
@@ -31,3 +31,13 @@ export default ((opts?: Options) => {
   Footer.css = style
   return Footer
 }) satisfies QuartzComponentConstructor
+
+// استفاده از لینک‌ها
+const myLinks = {
+  "لینکدین": "https://www.linkedin.com/in/your-profile",
+  "اینستاگرام": "https://www.instagram.com/your-profile",
+  "وبلاگ شخصی": "https://yourblog.com"
+};
+
+// هنگام استفاده از کامپوننت Footer، لینک‌ها را به آن پاس بدهید
+<Footer links={myLinks} />
