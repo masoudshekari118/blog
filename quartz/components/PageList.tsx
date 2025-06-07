@@ -55,13 +55,19 @@ export function byDateAndAlphabeticalFolderFirst(cfg: GlobalConfiguration): Sort
 type Props = {
   limit?: number
   sort?: SortFn
+  isHomePage?: boolean // اضافه کردن prop برای تشخیص صفحه اصلی
 } & QuartzComponentProps
 
-export const PageList: QuartzComponent = ({ cfg, fileData, allFiles, limit, sort }: Props) => {
+export const PageList: QuartzComponent = ({ cfg, fileData, allFiles, limit, sort, isHomePage }: Props) => {
   const sorter = sort ?? byDateAndAlphabeticalFolderFirst(cfg)
   let list = allFiles.sort(sorter)
   if (limit) {
     list = list.slice(0, limit)
+  }
+
+  // شرط برای عدم نمایش فهرست در صفحه اصلی
+  if (isHomePage) {
+    return null; // یا می‌توانی یک عنصر خالی برگردانی
   }
 
   return (
@@ -85,7 +91,7 @@ export const PageList: QuartzComponent = ({ cfg, fileData, allFiles, limit, sort
               </div>
               <ul class="tags">
                 {tags.map((tag) => (
-                  <li>
+                  <li key={tag}>
                     <a
                       class="internal tag-link"
                       href={resolveRelative(fileData.slug!, `tags/${tag}` as FullSlug)}
