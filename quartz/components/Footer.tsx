@@ -13,7 +13,7 @@ export default ((opts?: Options) => {
     const links = opts?.links ?? []
     return (
       <footer class={`${displayClass ?? ""}`}>
-        <p>
+        <p> style={{ textAlign: 'center' }}>
             کلیه حقوق سایت متعلق به مسعود شکری است. {" "}
         </p>
         <ul>
