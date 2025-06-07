@@ -14,8 +14,6 @@ export default ((opts?: Options) => {
     return (
       <footer class={`${displayClass ?? ""}`}>
         <p>
-
-            
           </div>
           <div class="about-div">
               <a href="/about">
