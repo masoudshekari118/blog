@@ -8,7 +8,7 @@ draft: false
 
 > 📢 **دیباچه:** در جهانی پر از صدا، نوشتن راهی است برای شنیدنِ اندیشه‌ها — اینجا، هر واژه تلاشی است برای نگاهی نو و فهمی عمیق!
 
-![تصویر مرتبط](https://images.inc.com/uploaded_files/image/1920x1080/getty_481187762_97064797045000_100756.jpg)
+![تصویر مرتبط](https://nokhalagh.ir/wp-content/uploads/2025/06/masoud-shekari-header-scaled.jpg)
 
 
 # وبسایت رسمی مسعود شکری 👋
