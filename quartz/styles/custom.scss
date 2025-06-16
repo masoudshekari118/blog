@@ -84,3 +84,14 @@ blockquote {
   padding-left: none;
 	transition: border-color .2s;
 }
+
+
+
+
+
+@layer base {
+  p {
+    font-size: 22px;
+    line-height: 1.75; // برای خوانایی بیشتر
+  }
+}
