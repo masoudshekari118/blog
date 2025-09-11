@@ -44,7 +44,7 @@ draft: false
 
 
 
-<!-- Latest posts widget -->
+<!-- Latest posts widget from mshekari.blog.ir -->
 <div id="latest-posts">
   <p>در حال بارگذاری...</p>
 </div>
@@ -52,57 +52,67 @@ draft: false
 <style>
   #latest-posts ul{ list-style:none; padding:0; margin:0; }
   #latest-posts li{ margin:0.35rem 0; }
-  #latest-posts a{ text-decoration:none; }
+  #latest-posts a{ text-decoration:none; color: inherit; }
 </style>
 
 <script>
 (async function(){
-  const feedUrl = 'https://mshekari.blog.ir/rss/'; // ← آدرس RSS خودت را اینجا بگذار
+  const feedUrl = 'https://mshekari.blog.ir/rss/';
   const target = document.getElementById('latest-posts');
-  const cacheKey = 'latestPostsCache_v1';
-  const cacheTTL = 1000 * 60 * 60; // 1 hour
+  const cacheKey = 'latestPostsCache_mshekari_v1';
+  const cacheTTL = 1000 * 60 * 30; // نیم ساعت
+
+  function setHTML(html){
+    target.innerHTML = html;
+  }
 
   try {
-    // check cache
+    // اول کش رو چک کن
     const cached = localStorage.getItem(cacheKey);
     if (cached) {
       const {ts, html} = JSON.parse(cached);
-      if (Date.now() - ts < cacheTTL) { target.innerHTML = html; return; }
+      if (Date.now() - ts < cacheTTL) {
+        setHTML(html);
+        return;
+      }
     }
 
-    // روش اول: سرویس rss2json (ساده ولی ممکن است نرخ محدود داشته باشد)
+    // روش اول: rss2json
     const api = 'https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(feedUrl);
     const res = await fetch(api);
     if (!res.ok) throw new Error('rss2json failed: ' + res.status);
     const data = await res.json();
-    const items = (data.items || []).slice(0,10);
+    if (!data.items || data.items.length === 0) throw new Error('no items in rss2json result');
+    const items = data.items.slice(0,10);
     const html = '<ul>' + items.map(it => 
       `<li><a href="${it.link}" target="_blank" rel="noopener noreferrer">${it.title}</a></li>`
     ).join('') + '</ul>';
-    target.innerHTML = html;
-    localStorage.setItem(cacheKey, JSON.stringify({ts:Date.now(), html}));
+    setHTML(html);
+    localStorage.setItem(cacheKey, JSON.stringify({ts: Date.now(), html}));
   } catch (err) {
-    console.warn('rss2json failed, trying CORS-proxy:', err);
+    console.warn('rss2json failed, trying proxy/XML fallback:', err);
 
     try {
-      // fallback: AllOrigins raw proxy (بازگرداندن متن خام RSS و پارس کردن XML)
+      // fallback: استفاده از پراکسی و خواندن XML
       const proxy = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(feedUrl);
-      const r2 = await fetch(proxy);
-      if (!r2.ok) throw new Error('proxy failed: ' + r2.status);
-      const xmlText = await r2.text();
+      const resp = await fetch(proxy);
+      if (!resp.ok) throw new Error('proxy fetch failed: ' + resp.status);
+      const xmlText = await resp.text();
       const parser = new DOMParser();
       const xml = parser.parseFromString(xmlText, 'application/xml');
-      const items = Array.from(xml.querySelectorAll('item')).slice(0,10);
-      const html = '<ul>' + items.map(it => {
-        const title = it.querySelector('title')?.textContent || 'بدون عنوان';
-        const link = it.querySelector('link')?.textContent || '#';
+      const itemsXml = Array.from(xml.querySelectorAll('item')).slice(0,10);
+      const html = '<ul>' + itemsXml.map(it => {
+        const titleEl = it.querySelector('title');
+        const linkEl = it.querySelector('link');
+        const title = titleEl ? titleEl.textContent.trim() : 'بدون عنوان';
+        const link = linkEl ? linkEl.textContent.trim() : '#';
         return `<li><a href="${link}" target="_blank" rel="noopener noreferrer">${title}</a></li>`;
       }).join('') + '</ul>';
-      target.innerHTML = html;
-      localStorage.setItem(cacheKey, JSON.stringify({ts:Date.now(), html}));
+      setHTML(html);
+      localStorage.setItem(cacheKey, JSON.stringify({ts: Date.now(), html}));
     } catch (err2) {
-      console.error(err2);
-      target.innerHTML = '<p>نمایش آخرین مطالب فعلاً ممکن نیست.</p>';
+      console.error('fallback also failed:', err2);
+      target.innerHTML = '<p>نمایش آخرین مطالب ممکن نیست.</p>';
     }
   }
 })();
