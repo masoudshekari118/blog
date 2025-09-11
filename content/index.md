@@ -44,77 +44,62 @@ draft: false
 
 
 
-<!-- Latest posts widget from mshekari.blog.ir -->
-<div id="latest-posts">
-  <p>در حال بارگذاری...</p>
-</div>
+<div id="rss-feed">در حال بارگذاری...</div>
 
 <style>
-  #latest-posts ul{ list-style:none; padding:0; margin:0; }
-  #latest-posts li{ margin:0.35rem 0; }
-  #latest-posts a{ text-decoration:none; color: inherit; }
+  #rss-feed {
+    font-family: Tahoma, sans-serif;
+    background: #f9f9f9;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    direction: rtl;
+    text-align: right;
+    line-height: 1.8;
+  }
+  #rss-feed ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  #rss-feed li {
+    margin-bottom: 8px;
+  }
+  #rss-feed a {
+    text-decoration: none;
+    color: #00796b;
+    font-weight: bold;
+    transition: color 0.3s;
+  }
+  #rss-feed a:hover {
+    color: #004d40;
+  }
 </style>
 
 <script>
-(async function(){
-  const feedUrl = 'https://mshekari.blog.ir/rss/';
-  const target = document.getElementById('latest-posts');
-  const cacheKey = 'latestPostsCache_mshekari_v1';
-  const cacheTTL = 1000 * 60 * 30; // نیم ساعت
-
-  function setHTML(html){
-    target.innerHTML = html;
-  }
-
+async function loadRSS() {
+  const url = "https://api.rss2json.com/v1/api.json?rss_url=https://mshekari.blog.ir/rss/";
   try {
-    // اول کش رو چک کن
-    const cached = localStorage.getItem(cacheKey);
-    if (cached) {
-      const {ts, html} = JSON.parse(cached);
-      if (Date.now() - ts < cacheTTL) {
-        setHTML(html);
-        return;
-      }
+    const response = await fetch(url);
+    const data = await response.json();
+
+    if (!data.items || data.items.length === 0) {
+      document.getElementById("rss-feed").innerHTML = "هیچ مطلبی یافت نشد.";
+      return;
     }
 
-    // روش اول: rss2json
-    const api = 'https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(feedUrl);
-    const res = await fetch(api);
-    if (!res.ok) throw new Error('rss2json failed: ' + res.status);
-    const data = await res.json();
-    if (!data.items || data.items.length === 0) throw new Error('no items in rss2json result');
-    const items = data.items.slice(0,10);
-    const html = '<ul>' + items.map(it => 
-      `<li><a href="${it.link}" target="_blank" rel="noopener noreferrer">${it.title}</a></li>`
-    ).join('') + '</ul>';
-    setHTML(html);
-    localStorage.setItem(cacheKey, JSON.stringify({ts: Date.now(), html}));
-  } catch (err) {
-    console.warn('rss2json failed, trying proxy/XML fallback:', err);
+    let html = "<ul>";
+    data.items.slice(0, 5).forEach(item => {
+      html += `<li><a href="${item.link}" target="_blank">${item.title}</a></li>`;
+    });
+    html += "</ul>";
 
-    try {
-      // fallback: استفاده از پراکسی و خواندن XML
-      const proxy = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(feedUrl);
-      const resp = await fetch(proxy);
-      if (!resp.ok) throw new Error('proxy fetch failed: ' + resp.status);
-      const xmlText = await resp.text();
-      const parser = new DOMParser();
-      const xml = parser.parseFromString(xmlText, 'application/xml');
-      const itemsXml = Array.from(xml.querySelectorAll('item')).slice(0,10);
-      const html = '<ul>' + itemsXml.map(it => {
-        const titleEl = it.querySelector('title');
-        const linkEl = it.querySelector('link');
-        const title = titleEl ? titleEl.textContent.trim() : 'بدون عنوان';
-        const link = linkEl ? linkEl.textContent.trim() : '#';
-        return `<li><a href="${link}" target="_blank" rel="noopener noreferrer">${title}</a></li>`;
-      }).join('') + '</ul>';
-      setHTML(html);
-      localStorage.setItem(cacheKey, JSON.stringify({ts: Date.now(), html}));
-    } catch (err2) {
-      console.error('fallback also failed:', err2);
-      target.innerHTML = '<p>نمایش آخرین مطالب ممکن نیست.</p>';
-    }
+    document.getElementById("rss-feed").innerHTML = html;
+  } catch (error) {
+    document.getElementById("rss-feed").innerHTML = "مشکلی در بارگذاری پیش آمد.";
   }
-})();
+}
+
+loadRSS();
 </script>
 
