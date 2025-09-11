@@ -78,19 +78,28 @@ draft: false
 
 <script>
 async function loadRSS() {
-  const url = "https://api.rss2json.com/v1/api.json?rss_url=https://mshekari.blog.ir/rss/";
+  const rssUrl = "https://mshekari.blog.ir/rss/";
+  const url = "https://api.allorigins.win/get?url=" + encodeURIComponent(rssUrl);
+
   try {
     const response = await fetch(url);
     const data = await response.json();
 
-    if (!data.items || data.items.length === 0) {
+    const parser = new DOMParser();
+    const xml = parser.parseFromString(data.contents, "text/xml");
+    const items = xml.querySelectorAll("item");
+
+    if (!items.length) {
       document.getElementById("rss-feed").innerHTML = "هیچ مطلبی یافت نشد.";
       return;
     }
 
     let html = "<ul>";
-    data.items.slice(0, 5).forEach(item => {
-      html += `<li><a href="${item.link}" target="_blank">${item.title}</a></li>`;
+    items.forEach((item, index) => {
+      if (index >= 5) return; // فقط ۵ پست آخر
+      const title = item.querySelector("title").textContent;
+      const link = item.querySelector("link").textContent;
+      html += `<li><a href="${link}" target="_blank">${title}</a></li>`;
     });
     html += "</ul>";
 
